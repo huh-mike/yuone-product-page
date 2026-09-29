@@ -33,3 +33,103 @@ body {
 .has-custom-cursor * {
   cursor: none !important;
 }
+
+/* ---------- whole-page experience ---------- */
+
+/* Headlines hung out on a line: they swing from the peg, harder when the page scrolls fast. */
+@keyframes yu-sway {
+  0%,
+  100% {
+    transform: rotate(calc(var(--sway, 1.1deg) * -1));
+  }
+  50% {
+    transform: rotate(var(--sway, 1.1deg));
+  }
+}
+
+.yu-hang {
+  transform-origin: 50% 0;
+  animation: yu-sway 3.6s ease-in-out infinite;
+}
+
+/* Copy that is lit by the passing band of UV light and barely there outside it. */
+.yu-uv-lit {
+  color: transparent;
+  background-image: radial-gradient(
+    circle 13em at var(--uv-x, 50%) 50%,
+    #f3ecff 0%,
+    #b79bff 38%,
+    rgba(160, 135, 255, 0.3) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+@keyframes yu-wave {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.yu-wave {
+  animation: yu-wave 0.9s ease-in-out infinite;
+}
+
+/* Sliders in the control panel and the configurator. */
+.yu-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1.25rem;
+  background: transparent;
+}
+
+.yu-range::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.yu-range::-moz-range-track {
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.yu-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  margin-top: calc(-0.5rem + 1px);
+  border: 0;
+  border-radius: 9999px;
+  background: #f0765a;
+}
+
+.yu-range::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  border: 0;
+  border-radius: 9999px;
+  background: #f0765a;
+}
+
+.yu-range:disabled {
+  opacity: 0.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yu-hang,
+  .yu-wave {
+    animation: none;
+  }
+
+  .yu-uv-lit {
+    color: #cdbcff;
+    background-image: none;
+  }
+}

@@ -1,6 +1,5 @@
 import { CustomCursor } from "@/components/custom-cursor";
-import { PlaceholderSections } from "@/components/placeholder-sections";
-import { ScrollHero } from "@/components/scroll-hero/scroll-hero";
+import { Experience } from "@/components/experience/experience";
 import { SiteHeader } from "@/components/site-header";
 
 export default function Home() {
@@ -9,8 +8,7 @@ export default function Home() {
       <CustomCursor />
       <SiteHeader />
       <main className="flex-1">
-        <ScrollHero />
-        <PlaceholderSections />
+        <Experience />
       </main>
     </>
   );
