@@ -5,9 +5,8 @@ import { useCallback, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { YuhomeLogo } from "../yuhome-logo";
 import { Backdrop } from "./backdrop";
-import { Hud } from "./hud";
+import { CtaCables, Hud } from "./hud";
 import { BuildSection } from "./sections/build";
 import { CareSection } from "./sections/care";
 import { ControlSection } from "./sections/control";
@@ -127,6 +126,9 @@ export function Experience() {
     <div ref={root} className="relative">
       <Backdrop />
 
+      {/* the cables the Buy button is lowered on at the end, behind the unit */}
+      <CtaCables />
+
       {/* ---------- 3D product (fades in once the model is decoded) ---------- */}
       <div data-canvas className="pointer-events-none invisible fixed inset-0 z-10 opacity-0">
         <Scene onReady={onSceneReady} />
@@ -138,24 +140,6 @@ export function Experience() {
         <CareSection />
         <ControlSection />
         <BuildSection />
-
-        <footer className="relative bg-[#040407] px-[6vw] py-[7svh] text-[#efe7da]">
-          <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-            <div>
-              <YuhomeLogo className="h-[38px] w-auto" wordmarkFill="#efe7da" />
-              <p className="mt-5 max-w-[26rem] font-brand text-[13px] font-light text-[#efe7da]/60">
-                YU ONE is a modular automated laundry system. Start with one module and add what you need, when you
-                need it.
-              </p>
-            </div>
-            <a
-              href="#hero"
-              className="font-display text-[11px] uppercase tracking-[0.3em] text-[#efe7da]/70 transition-colors hover:text-[#F0765A]"
-            >
-              Back to the top ↑
-            </a>
-          </div>
-        </footer>
       </div>
 
       <Hud />
