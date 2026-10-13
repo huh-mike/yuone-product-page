@@ -26,22 +26,22 @@ function Lights() {
     const r = rig;
     const on = 1 - 0.97 * r.lightsOut;
     const paper = r.backdrop.paper;
-    state.scene.environmentIntensity = on * (1 + 0.25 * paper);
-    if (key.current) key.current.intensity = 1.3 * on;
+    state.scene.environmentIntensity = on * (1.25 + 0.2 * paper);
+    if (key.current) key.current.intensity = 1.7 * on;
     // the coral cove glow belongs to the room, not the drawing board
-    if (cove.current) cove.current.intensity = 0.45 * on * (1 - paper);
-    if (fill.current) fill.current.intensity = (1.1 + 0.5 * paper) * on;
-    if (ambient.current) ambient.current.intensity = (0.18 + 0.25 * paper) * on;
+    if (cove.current) cove.current.intensity = 0.5 * on * (1 - paper);
+    if (fill.current) fill.current.intensity = (1.6 + 0.4 * paper) * on;
+    if (ambient.current) ambient.current.intensity = (0.36 + 0.2 * paper) * on;
 
     sfx.mix({ rain: r.backdrop.rain * (1 - r.backdrop.black), fan: r.fan, gust: r.gust - 1, uv: r.uv, motor: r.travel * 4 });
   });
 
   return (
     <>
-      <directionalLight ref={key} position={[3, 1.4, 2]} intensity={1.3} color="#ffd6b8" />
-      <directionalLight ref={cove} position={[-2.2, -1.2, 1.6]} intensity={0.45} color="#f0765a" />
-      <directionalLight ref={fill} position={[-1, 2.5, 2]} intensity={1.1} color="#dfe6f2" />
-      <ambientLight ref={ambient} intensity={0.18} color="#98a6bc" />
+      <directionalLight ref={key} position={[3, 1.4, 2]} intensity={1.7} color="#ffd6b8" />
+      <directionalLight ref={cove} position={[-2.2, -1.2, 1.6]} intensity={0.5} color="#f0765a" />
+      <directionalLight ref={fill} position={[-1, 2.5, 2]} intensity={1.6} color="#dfe6f2" />
+      <ambientLight ref={ambient} intensity={0.36} color="#aab6c8" />
     </>
   );
 }
@@ -56,7 +56,7 @@ export function Scene({ onReady }: Props) {
         alpha: true,
         powerPreference: "high-performance",
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.05,
+        toneMappingExposure: 1.22,
       }}
       style={{ background: "transparent" }}
     >

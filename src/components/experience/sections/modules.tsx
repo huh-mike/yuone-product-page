@@ -13,19 +13,19 @@ const MODULES = [
     key: "solo",
     name: "Solo.",
     lead: "One pole.",
-    body: "The everyday line for shirts, tees and trousers. 1.1 m of hanging space in a single slot.",
+    body: "The everyday line for shirts, tees and trousers. One 1.2 m pole in a single slot, telescoping out to 1.9 m.",
   },
   {
     key: "duo",
     name: "Duo.",
     lead: "Two poles.",
-    body: "Twice the line in the same slot. 2.2 m of hanging space, front and back.",
+    body: "Twice the line in the same slot: two poles, front and back. 2.4 m of hanging space as standard, 3.8 m extended.",
   },
   {
     key: "flex",
     name: "Flex.",
     lead: "Two poles. One swings out.",
-    body: "Open the arm and the poles spread apart, so a bedsheet or duvet hangs with air on both sides.",
+    body: "Open the arm and the poles spread apart, so a bedsheet or duvet hangs with air on both sides. The same 1.2 m poles, out to 1.9 m.",
   },
 ];
 
@@ -149,6 +149,7 @@ export function ModulesSection() {
             <p className="mt-4 font-brand text-[#222]/70" style={BODY}>
               {m.body}
             </p>
+            <p className="mt-3 font-brand text-[12px] text-[#222]/50">Shorter poles, down to 1 m, made to order.</p>
           </div>
         ))}
 

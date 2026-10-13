@@ -237,7 +237,8 @@ export function KitRack() {
     }
 
     const e = r.explode;
-    root.current.position.y = -r.drop + EXPLODE.rack * e;
+    // the frame rises with the base on phones; the rows below stay put
+    root.current.position.y = -r.drop + EXPLODE.rack * e + r.drawerLift;
 
     // frame width eases, so the bars lengthen and the modules slide along them
     const first = !kit.started;
@@ -287,7 +288,7 @@ export function KitRack() {
       // in the frame, or laid out below it as a specimen
       const z = ((kit.n - 1) / 2 - k) * SLOT * (1 + 0.5 * e);
       const inDrawer = k < 3 ? d : 0;
-      slot.group.position.set(0, drawerY(k) * inDrawer + EXPLODE.modules * e, z * (1 - inDrawer));
+      slot.group.position.set(0, (drawerY(k) - r.drawerLift) * inDrawer + EXPLODE.modules * e, z * (1 - inDrawer));
       slot.seat.position.y = -(1 - easeOutBack(slot.v)) * 0.2;
 
       // Flex: the second pole swings out underneath to double the spacing

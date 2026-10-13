@@ -40,8 +40,11 @@ export function HeroSection() {
         // hint leaves as soon as the user commits to scrolling
         tl.to(q("[data-hint]"), { autoAlpha: 0, duration: 0.05 }, 0.02);
 
-        show("[data-beat='1']", 0.06, 0.12);
-        hide("[data-beat='1']", 0.2);
+        // the name first, the line under it a beat later
+        show("[data-beat='1']", 0.05, 0.1);
+        show("[data-beat='1b']", 0.13, 0.1);
+        hide("[data-beat='1']", 0.26);
+        hide("[data-beat='1b']", 0.26);
 
         // modules detach → click in one by one (matches BEATS.attach in the rig)
         show("[data-beat='2']", 0.27);
@@ -62,7 +65,7 @@ export function HeroSection() {
 
       // reduced motion: product + first beat visible, nothing scroll-bound
       mm.add("(prefers-reduced-motion: reduce)", () => {
-        gsap.set(q("[data-beat='1']"), { autoAlpha: 1 });
+        gsap.set(q("[data-beat='1'], [data-beat='1b']"), { autoAlpha: 1 });
         gsap.set(q("[data-beat='2'], [data-beat='3'], [data-hint]"), { autoAlpha: 0 });
       });
     },
@@ -87,8 +90,13 @@ export function HeroSection() {
             YU ONE
           </p>
           <span aria-hidden className="mt-4 block h-px w-12 bg-white/60" />
+        </div>
+        <div
+          data-beat="1b"
+          className="invisible absolute left-[6vw] top-[calc(60svh+5.5rem)] max-w-[34rem] opacity-0 md:top-[calc(46svh+5.5rem)]"
+        >
           <p
-            className="mt-8 font-brand text-white/90"
+            className="font-brand text-white/90"
             style={{ fontSize: "clamp(1.1rem, 1.6vw, 1.7rem)", lineHeight: 1.45, fontWeight: 300 }}
           >
             Start with YU ONE.
@@ -135,11 +143,11 @@ export function HeroSection() {
 
         <div
           data-beat="3"
-          className="invisible absolute inset-x-0 bottom-[6svh] flex flex-col items-center text-center opacity-0"
+          className="invisible absolute inset-x-0 bottom-[6svh] flex flex-col items-center text-center opacity-0 md:inset-x-auto md:bottom-auto md:left-[6vw] md:top-1/2 md:max-w-[44rem] md:-translate-y-1/2 md:items-start md:text-left"
         >
           <p
             className="font-display text-[#efe7da]"
-            style={{ ...vf(200, 100), fontSize: "clamp(2rem, 4.4vw, 4.6rem)", lineHeight: 1.02 }}
+            style={{ ...vf(200, 100), fontSize: "clamp(2rem, 4vw, 4.2rem)", lineHeight: 1.02 }}
           >
             It comes down to you.
           </p>

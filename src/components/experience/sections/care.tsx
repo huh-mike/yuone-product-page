@@ -91,7 +91,8 @@ export function CareSection() {
             through every layer.
           </h2>
           <p className="mt-6 font-brand text-white/75" style={BODY}>
-            Scroll faster and it blows harder. Run your cursor through the stream and it parts around you.
+            Flow’s louvre swings as it blows, so the stream sweeps across every row. Scroll faster and it blows
+            harder; run your cursor through it and it parts around you.
           </p>
         </div>
 

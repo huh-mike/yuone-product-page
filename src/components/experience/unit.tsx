@@ -2,14 +2,15 @@
 
 import { useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { Suspense, useEffect, useMemo, useRef } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { Airflow } from "./airflow";
+import { Dimension } from "./dimension";
 import { EXPLODE } from "./explode";
 import { KitRack, kitState } from "./kit-rack";
 import { Labels } from "./labels";
 import { glow, HERO_FLOW_GLOW, HERO_UV_GLOW, restyle } from "./materials";
-import { seg, rig } from "./rig";
+import { RACK_Y, drawerY, rig, seg } from "./rig";
 import { Room } from "./room";
 import { sfx } from "./sound";
 
@@ -140,10 +141,9 @@ export function Unit({ onReady }: Props) {
     [],
   );
 
-  useFrame((state, dt) => {
+  useFrame((_, dt) => {
     const unit = (assembly.current ??= assemble(model, animations));
     const r = rig;
-    const t = state.clock.elapsedTime;
 
     if (root.current && spin.current && offset.current) {
       root.current.position.copy(r.pos);
@@ -163,15 +163,18 @@ export function Unit({ onReady }: Props) {
     attached.current = r.attach;
 
     const e = r.explode;
-    unit.shell.position.y = EXPLODE.shell * e;
-    unit.plate.position.y = EXPLODE.plate * e;
-    unit.panel.position.y = EXPLODE.panel * e;
+    // on phones the base rises out of the way while the specimen rows are on show
+    const up = r.drawerLift;
+    unit.shell.position.y = EXPLODE.shell * e + up;
+    unit.plate.position.y = EXPLODE.plate * e + up;
+    unit.panel.position.y = EXPLODE.panel * e + up;
+    unit.lift.position.y = up;
 
     const k = Math.min(1, dt * 5);
     present.current.flow += ((r.hasFlow ? 1 : 0) - present.current.flow) * k;
     present.current.uv += ((r.hasUv ? 1 : 0) - present.current.uv) * k;
-    fit(unit.flow, present.current.flow, EXPLODE.flow * e);
-    fit(unit.uv, present.current.uv, EXPLODE.uv * e);
+    fit(unit.flow, present.current.flow, EXPLODE.flow * e + up);
+    fit(unit.uv, present.current.uv, EXPLODE.uv * e + up);
 
     const rackY = -r.drop + EXPLODE.rack * e;
     unit.rack.position.y = rackY;
@@ -182,21 +185,54 @@ export function Unit({ onReady }: Props) {
     }
     unit.mixer.update(0);
 
-    unit.vane.rotation.x = Math.sin(t * 1.4) * 0.5 * r.fan;
+    // the louvre sweeps the stream across the rows; the air in airflow.tsx leans with it
+    unit.vane.rotation.x = r.swingAngle;
 
     // after the hero the LEDs follow what is actually running
     const w = seg(r.T, 1, 1.1);
     glow.flow().emissiveIntensity = (HERO_FLOW_GLOW * (1 - w) + (0.5 + 3 * r.fan) * w) * r.power;
     glow.uv().emissiveIntensity = (HERO_UV_GLOW * (1 - w) + (0.25 + 5 * r.uv) * w) * r.power;
     glow.panel().emissiveIntensity = 2.4 * r.light;
+    glow.panel().emissive.copy(r.lightColor);
 
     if (uvLight.current) uvLight.current.intensity = 5 * r.uv * present.current.uv;
     if (sweepLight.current) {
       sweepLight.current.intensity = 7 * r.uv * present.current.uv;
       sweepLight.current.position.set((r.sweep * 2 - 1) * 0.7, rackY - 0.62, 0.35);
     }
-    if (panelLight.current) panelLight.current.intensity = 2.2 * r.light;
+    if (panelLight.current) {
+      panelLight.current.intensity = 2.2 * r.light;
+      panelLight.current.color.copy(r.lightColor);
+    }
   });
+
+  /** Ceiling to rail, live: counts down the full 1.3 m as the rack lowers. */
+  const readDrop = useCallback(() => {
+    const rail = RACK_Y - rig.drop;
+    // just outside the rail: on the unit's right in the hero (the copy is on the left),
+    // on its left in the control section (the panel is on the left, the HUD on the right)
+    const x = rig.T <= 1.1 ? -0.68 : 0.68;
+    return {
+      from: [x, 0, 0] as [number, number, number],
+      to: [x, rail, 0] as [number, number, number],
+      opacity: rig.measure,
+      value: `${(-rail).toFixed(1)} m`,
+      note: "ceiling to rail",
+      side: "before" as const,
+    };
+  }, []);
+
+  /** The Solo pole as it comes, with how far it telescopes: drawn under the laundry, above the next specimen. */
+  const readPole = useCallback(() => {
+    const y = drawerY(0) - 0.3947 - 0.74;
+    return {
+      from: [-0.58, y, 0] as [number, number, number],
+      to: [0.58, y, 0] as [number, number, number],
+      opacity: rig.poleDim,
+      value: "1.2 m",
+      note: "extends to 1.9 m · shorter to order, from 1 m",
+    };
+  }, []);
 
   return (
     <group ref={root}>
@@ -208,6 +244,8 @@ export function Unit({ onReady }: Props) {
           </Suspense>
           <Airflow />
           <Labels />
+          <Dimension read={readDrop} tick={[1, 0, 0]} color="#efe7da" />
+          <Dimension read={readPole} tick={[0, 1, 0]} color="#222222" align="center" />
           <Room />
           <pointLight ref={uvLight} color="#7a3dff" position={[0, -0.12, 0.08]} intensity={0} distance={2.4} decay={1.6} />
           <pointLight ref={sweepLight} color="#9a6bff" intensity={0} distance={1.6} decay={1.4} />

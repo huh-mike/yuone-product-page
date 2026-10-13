@@ -21,6 +21,23 @@ export const SECTIONS = [
 
 export type SectionId = (typeof SECTIONS)[number]["id"];
 
+/** The product page in the store, where the cart is. */
+export const STORE_URL = "https://yuhome.com.sg/products/yu-one-automated-laundry-system";
+
+/**
+ * Resting beats on the page, as page positions (section index + progress).
+ * Scrolling past one plays the journey through to the next, so a reader who
+ * nudges the wheel sees a whole transition rather than a frame of it. Reduced
+ * motion cuts straight between them.
+ */
+export const ANCHORS = [
+  0, 0.2, 0.62, 0.97,
+  1.29, 1.5, 1.6, 1.74, 1.97,
+  2.22, 2.41, 2.57, 2.71, 2.92,
+  3.4, 3.62, 3.76, 3.9,
+  4.5, 5.0,
+];
+
 /** Fraction of a section's progress spent scrolling into view, before it pins. */
 export const enterOf = (id: SectionId) => 100 / SECTIONS.find((s) => s.id === id)!.svh;
 
@@ -35,8 +52,6 @@ export const stage = {
   reduced: false,
   /** The model is decoded and on screen. */
   ready: false,
-  /** Press-and-hold remote: true while the visitor is holding. */
-  hold: false,
   /** Rack height set from the control panel: 0 = up at the ceiling, 1 = lowered. */
   height: 1,
   /** Drag-to-orbit offsets in the configurator, radians. */
@@ -81,11 +96,14 @@ function createStore<T extends object>(initial: T) {
   };
 }
 
+export type LightMode = "off" | "warm" | "cool" | "daylight";
+
 /** What the unit is doing, as shown on (and set from) the control panel. */
 export type ControlState = {
-  light: boolean;
+  light: LightMode;
   flow: boolean;
   uv: boolean;
+  heat: boolean;
   /** "you" while the visitor drives, "schedule" while the day timeline does. */
   driver: "you" | "schedule";
   /** Clock label for the day timeline, e.g. "07:00". Empty while the visitor drives. */
@@ -95,9 +113,10 @@ export type ControlState = {
 };
 
 export const control = createStore<ControlState>({
-  light: false,
+  light: "off",
   flow: false,
   uv: false,
+  heat: false,
   driver: "you",
   clock: "",
   note: "",

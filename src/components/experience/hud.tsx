@@ -6,7 +6,7 @@ import { useGSAP } from "@gsap/react";
 import { vf } from "./beats";
 import { rig } from "./rig";
 import { sfx } from "./sound";
-import { SECTIONS, pageT } from "./stage";
+import { SECTIONS, STORE_URL, pageT } from "./stage";
 
 gsap.registerPlugin(useGSAP);
 
@@ -28,6 +28,7 @@ export function Hud() {
       const rack = q("[data-mini-rack]")[0] as HTMLElement | undefined;
       const lift = q("[data-mini-lift]")[0] as HTMLElement | undefined;
       const marks = q("[data-mark]") as HTMLElement[];
+      const fade = q("[data-fade]")[0] as HTMLElement | undefined;
 
       const paint = () => {
         const t = pageT();
@@ -38,8 +39,8 @@ export function Hud() {
         marks.forEach((m, i) => m.toggleAttribute("data-current", i === current));
         // dark ink on the drawing board, light everywhere else
         el.style.color = rig.backdrop.paper > 0.5 ? "#222222" : "#efe7da";
-        // stays out of the way of the hero until the reader starts moving
-        el.style.opacity = String(Math.min(1, t * 6));
+        // the furniture stays out of the way of the hero until the reader starts moving; the cart never hides
+        if (fade) fade.style.opacity = String(Math.min(1, t * 6));
       };
       gsap.ticker.add(paint);
       return () => gsap.ticker.remove(paint);
@@ -54,7 +55,20 @@ export function Hud() {
   };
 
   return (
-    <div ref={root} className="pointer-events-none fixed inset-0 z-40 opacity-0 transition-colors duration-500">
+    <div ref={root} className="pointer-events-none fixed inset-0 z-40 transition-colors duration-500">
+      {/* ---------- buy: always within reach ---------- */}
+      <a
+        href={STORE_URL}
+        className="pointer-events-auto absolute right-4 top-[4.5rem] inline-flex items-center gap-2 rounded-full bg-[#F0765A] px-4 py-2 font-brand text-[13px] font-semibold text-white shadow-[0_12px_32px_rgba(240,118,90,0.35)] transition hover:bg-[#ff8a6e] md:right-[6vw] md:px-5 md:py-2.5"
+      >
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="size-4">
+          <path d="M4.5 7.5h15l-1.2 12.2a1.4 1.4 0 0 1-1.4 1.3H7.1a1.4 1.4 0 0 1-1.4-1.3L4.5 7.5Z" strokeLinejoin="round" />
+          <path d="M8.7 9.6V6.4a3.3 3.3 0 0 1 6.6 0v3.2" strokeLinecap="round" />
+        </svg>
+        Buy now
+      </a>
+
+      <div data-fade className="absolute inset-0 opacity-0">
       {/* ---------- miniature rack: page progress ---------- */}
       <nav
         aria-label="Sections"
@@ -90,7 +104,7 @@ export function Hud() {
         type="button"
         onClick={toggle}
         aria-pressed={sound}
-        className="pointer-events-auto absolute right-4 top-4 flex items-center gap-2 font-display uppercase opacity-70 transition-opacity hover:opacity-100 md:bottom-[3svh] md:right-[1.6vw] md:top-auto"
+        className="pointer-events-auto absolute bottom-[3svh] right-4 flex items-center gap-2 font-display uppercase opacity-70 transition-opacity hover:opacity-100 md:right-[1.6vw]"
         style={{ ...vf(400, 105), fontSize: "0.6rem", letterSpacing: "0.26em" }}
       >
         <span aria-hidden className="flex h-3 items-end gap-[2px]">
@@ -104,6 +118,7 @@ export function Hud() {
         </span>
         Sound {sound ? "on" : "off"}
       </button>
+      </div>
     </div>
   );
 }

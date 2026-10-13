@@ -126,7 +126,7 @@ export function Backdrop() {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, rgba(8,9,12,0.62) 0%, rgba(8,9,12,0.28) 38%, rgba(8,9,12,0.18) 62%, rgba(8,9,12,0.86) 100%)",
+            "linear-gradient(180deg, rgba(8,9,12,0.4) 0%, rgba(8,9,12,0.12) 38%, rgba(8,9,12,0.08) 62%, rgba(8,9,12,0.7) 100%)",
         }}
       />
       <div data-layer="veil" className="absolute inset-0 opacity-0" style={{ background: "rgba(8,9,12,1)" }} />
@@ -139,7 +139,7 @@ export function Backdrop() {
       <div
         className="absolute inset-0"
         style={{
-          background: "radial-gradient(120% 100% at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.5) 100%)",
+          background: "radial-gradient(120% 100% at 50% 50%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.32) 100%)",
         }}
       />
 

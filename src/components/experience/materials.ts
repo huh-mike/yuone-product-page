@@ -24,19 +24,19 @@ function create(name: string): THREE.Material | null {
     case "ShellUnder":
       // the underside, which is also the light panel
       return new THREE.MeshStandardMaterial({
-        color: "#14151a",
-        roughness: 0.6,
-        metalness: 0.15,
+        color: "#3b3d45",
+        roughness: 0.55,
+        metalness: 0.1,
         emissive: new THREE.Color("#ffe2bf"),
         emissiveIntensity: 0,
       });
     case "Poles":
       // gunmetal
-      return new THREE.MeshStandardMaterial({ color: "#17181c", roughness: 0.32, metalness: 0.78, envMapIntensity: 1.3 });
+      return new THREE.MeshStandardMaterial({ color: "#2b2d34", roughness: 0.34, metalness: 0.7, envMapIntensity: 1.2 });
     case "Clip":
     case "Fan":
     case "Dark":
-      return new THREE.MeshStandardMaterial({ color: "#101114", roughness: 0.5, metalness: 0.3 });
+      return new THREE.MeshStandardMaterial({ color: "#1c1d22", roughness: 0.5, metalness: 0.3 });
     case "AccentLED":
       return new THREE.MeshStandardMaterial({
         color: "#ff9a70",
