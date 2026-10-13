@@ -14,7 +14,7 @@ import { ControlSection } from "./sections/control";
 import { HeroSection } from "./sections/hero";
 import { ModulesSection } from "./sections/modules";
 import { settleRig, tickRig } from "./rig";
-import { ANCHORS, SECTIONS, stage } from "./stage";
+import { SECTIONS, stage } from "./stage";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -94,44 +94,9 @@ export function Experience() {
       };
       gsap.ticker.add(tick);
 
-      /** Scroll position of a page position (section index + progress), in px. */
-      const scrollAt = (T: number) => {
-        const i = Math.min(SECTIONS.length - 1, Math.floor(T));
-        const section = document.getElementById(SECTIONS[i].id);
-        if (!section) return 0;
-        const vh = window.innerHeight;
-        const top = section.getBoundingClientRect().top + window.scrollY;
-        const start = i === 0 ? top : top - vh;
-        const end = top + section.offsetHeight - vh;
-        return start + (T - i) * (end - start);
-      };
-
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         stage.reduced = false;
-
-        // the gate between beats: a nudge of the wheel past a resting beat
-        // plays the journey on to the next one instead of leaving it half way
-        ScrollTrigger.create({
-          trigger: "#hero",
-          start: "top top",
-          endTrigger: "#build",
-          end: "bottom bottom",
-          snap: {
-            snapTo: (value, self) => {
-              if (!self) return value;
-              const span = self.end - self.start;
-              if (span <= 0) return value;
-              const stops = ANCHORS.map((a) => (scrollAt(a) - self.start) / span);
-              return ScrollTrigger.snapDirectional(stops)(value, self.direction);
-            },
-            duration: { min: 0.35, max: 1.3 },
-            delay: 0.08,
-            ease: "power2.inOut",
-            inertia: false,
-          },
-        });
-
         const onMove = (e: PointerEvent) => {
           stage.pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
           stage.pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
