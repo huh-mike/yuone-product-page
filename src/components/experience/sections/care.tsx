@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { BODY, EYEBROW, TITLE, sectionTimeline, vf } from "../beats";
+import { BODY, EYEBROW, ON_ROOM, TITLE, sectionTimeline, vf } from "../beats";
 import { rig } from "../rig";
 
 gsap.registerPlugin(useGSAP);
@@ -71,7 +71,7 @@ export function CareSection() {
             <br />
             Dry indoors.
           </h2>
-          <p className="mt-6 font-brand text-white/75" style={BODY}>
+          <p className="mt-6 font-brand text-white/75" style={{ ...BODY, ...ON_ROOM }}>
             Laundry day should not depend on the forecast. Flow moves air through every row, and UV Glow follows
             with light.
           </p>
@@ -90,7 +90,7 @@ export function CareSection() {
             <br />
             through every layer.
           </h2>
-          <p className="mt-6 font-brand text-white/75" style={BODY}>
+          <p className="mt-6 font-brand text-white/75" style={{ ...BODY, ...ON_ROOM }}>
             Flow’s louvre swings as it blows, so the stream sweeps across every row. Scroll faster and it blows
             harder; run your cursor through it and it parts around you.
           </p>

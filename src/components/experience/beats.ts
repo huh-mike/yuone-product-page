@@ -26,6 +26,11 @@ export const BODY = {
   lineHeight: 1.5,
 };
 
+/** Light copy over the room photo: a soft dark halo keeps it legible where it crosses the lit cove. */
+export const ON_ROOM = {
+  textShadow: "0 1px 16px rgba(10,8,6,0.6), 0 0 3px rgba(10,8,6,0.35)",
+};
+
 /**
  * A scrubbed timeline for one section, one unit long, so positions read as
  * the section's progress: the same number the 3D choreography is keyed on.

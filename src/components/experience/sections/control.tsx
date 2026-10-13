@@ -3,7 +3,7 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { BODY, EYEBROW, TITLE, sectionTimeline, vf } from "../beats";
+import { BODY, EYEBROW, ON_ROOM, TITLE, sectionTimeline, vf } from "../beats";
 import { RACK_DROP, RACK_Y, rig } from "../rig";
 import { control, stage, type ControlState, type LightMode } from "../stage";
 
@@ -227,7 +227,7 @@ export function ControlSection() {
             Every function, <br className="hidden md:block" />
             from the app.
           </h2>
-          <p className="mt-4 hidden font-brand text-white/75 md:block [@media(max-height:720px)]:hidden" style={BODY}>
+          <p className="mt-4 hidden font-brand text-white/75 md:block [@media(max-height:720px)]:hidden" style={{ ...BODY, ...ON_ROOM }}>
             This panel is live. Whatever you set, the unit does.
           </p>
         </div>
@@ -243,7 +243,7 @@ export function ControlSection() {
           >
             {state.clock || "07:00"}
           </p>
-          <p className="mt-2 font-brand text-white/75" style={BODY}>
+          <p className="mt-2 font-brand text-white/75" style={{ ...BODY, ...ON_ROOM }}>
             {state.note || "A whole day, in one scroll."}
           </p>
         </div>

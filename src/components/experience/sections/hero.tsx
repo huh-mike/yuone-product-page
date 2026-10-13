@@ -4,7 +4,7 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { EYEBROW, vf } from "../beats";
+import { EYEBROW, ON_ROOM, vf } from "../beats";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -97,7 +97,7 @@ export function HeroSection() {
         >
           <p
             className="font-brand text-white/90"
-            style={{ fontSize: "clamp(1.1rem, 1.6vw, 1.7rem)", lineHeight: 1.45, fontWeight: 300 }}
+            style={{ fontSize: "clamp(1.1rem, 1.6vw, 1.7rem)", lineHeight: 1.45, fontWeight: 300, ...ON_ROOM }}
           >
             Start with YU ONE.
             <br />
@@ -122,7 +122,7 @@ export function HeroSection() {
           </p>
           <p
             className="mt-6 font-brand text-white/75"
-            style={{ fontSize: "clamp(0.95rem, 1.1vw, 1.15rem)", fontWeight: 300 }}
+            style={{ fontSize: "clamp(0.95rem, 1.1vw, 1.15rem)", fontWeight: 300, ...ON_ROOM }}
           >
             Each drying module clicks into the frame in seconds.
             <br />
@@ -153,7 +153,7 @@ export function HeroSection() {
           </p>
           <p
             className="mt-4 font-brand text-white/75"
-            style={{ fontSize: "clamp(0.95rem, 1.1vw, 1.15rem)", fontWeight: 300 }}
+            style={{ fontSize: "clamp(0.95rem, 1.1vw, 1.15rem)", fontWeight: 300, ...ON_ROOM }}
           >
             Quiet motor. Lowers to hand height. Rises out of the way.
           </p>
