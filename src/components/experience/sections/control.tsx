@@ -27,7 +27,7 @@ const LIGHTS: { key: LightMode; name: string }[] = [
 type SwitchKey = "flow" | "uv" | "heat";
 const SWITCHES: { key: SwitchKey; name: string; note: string }[] = [
   { key: "flow", name: "Flow", note: "Air, sweeping across the rack" },
-  { key: "uv", name: "Disinfect", note: "UV light cycle" },
+  { key: "uv", name: "Disinfect", note: "UV light cycle, rack at the top" },
   { key: "heat", name: "Heating", note: "Warm air while it dries" },
 ];
 
@@ -39,7 +39,7 @@ function Switch({ name, note, on, disabled, onChange }: { name: string; note: st
       aria-checked={on}
       disabled={disabled}
       onClick={onChange}
-      className="flex w-full items-center justify-between gap-3 rounded-2xl bg-white/[0.06] px-4 py-2 text-left transition hover:bg-white/[0.1] disabled:hover:bg-white/[0.06] sm:py-2.5"
+      className="flex w-full items-center justify-between gap-3 rounded-2xl bg-white/[0.06] px-4 py-2 text-left transition hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:hover:bg-white/[0.06] sm:py-2.5"
     >
       <span>
         <span className="block font-brand text-[13px] text-white">{name}</span>
@@ -160,16 +160,21 @@ function Panel({ state }: { state: ControlState }) {
           <Switch
             key={s.key}
             name={s.name}
-            note={s.note}
+            note={s.key === "uv" && !state.rackUp && !scheduled ? "Raise the rack all the way first" : s.note}
             on={state[s.key]}
-            disabled={scheduled}
+            // UV runs only with the rack all the way up, as on the product
+            disabled={scheduled || (s.key === "uv" && !state.rackUp)}
             onChange={() => control.set({ [s.key]: !state[s.key] })}
           />
         ))}
       </div>
 
       <p className="mt-3 min-h-[2.2em] px-1 font-brand text-[11px] leading-snug text-white/55" aria-live="polite">
-        {scheduled ? state.note : "Illustrative panel: the functions are the YU ONE app’s, the layout is this page’s."}
+        {scheduled
+          ? state.note
+          : state.rackUp
+            ? "Illustrative panel: the functions are the YU ONE app’s, the layout is this page’s."
+            : "Disinfect runs only with the rack all the way up. Raise it to switch UV on."}
       </p>
     </div>
   );
@@ -179,8 +184,8 @@ const DAY_STEPS = [
   { at: "07:30", label: "Lowers for the morning load" },
   { at: "09:00", label: "Flow on" },
   { at: "13:00", label: "Rain. Flow and heating keep drying" },
-  { at: "15:00", label: "Disinfect cycle" },
-  { at: "18:30", label: "Rises out of the way" },
+  { at: "15:00", label: "Rises all the way up" },
+  { at: "16:00", label: "Disinfect cycle, at the top" },
   { at: "20:30", label: "Evening light, warm" },
 ];
 

@@ -12,23 +12,38 @@ const cache = new Map<string, THREE.Material>();
 function create(name: string): THREE.Material | null {
   switch (name) {
     case "Shell":
-      // satin white
-      return new THREE.MeshPhysicalMaterial({
-        color: "#f1eee8",
-        roughness: 0.38,
-        metalness: 0,
-        clearcoat: 0.35,
-        clearcoatRoughness: 0.35,
-        envMapIntensity: 0.7,
-      });
     case "ShellUnder":
-      // the underside, which is also the light panel
-      return new THREE.MeshStandardMaterial({
-        color: "#3b3d45",
-        roughness: 0.55,
-        metalness: 0.1,
+      // satin black housing, top and underside alike
+      return new THREE.MeshPhysicalMaterial({
+        color: "#16171b",
+        roughness: 0.42,
+        metalness: 0.15,
+        clearcoat: 0.3,
+        clearcoatRoughness: 0.4,
+        envMapIntensity: 0.9,
+      });
+    case "Panel":
+      // the light ring under the shell: frosted acrylic (磨砂), milky white, never reflects
+      // and nothing shows through it; it is itself the lamp. Opaque on purpose: the scattered
+      // light inside the acrylic is the faint glow it keeps when off (PANEL_IDLE_GLOW).
+      return new THREE.MeshPhysicalMaterial({
+        color: "#f2f0eb",
+        roughness: 1,
+        metalness: 0,
+        specularIntensity: 0,
+        envMapIntensity: 0.8,
         emissive: new THREE.Color("#ffe2bf"),
         emissiveIntensity: 0,
+      });
+    case "Logo":
+      // the yuhome marks: a gloss finish, tone on tone against the satin black
+      return new THREE.MeshPhysicalMaterial({
+        color: "#3a3b41",
+        roughness: 0.12,
+        metalness: 0.85,
+        clearcoat: 1,
+        clearcoatRoughness: 0.03,
+        envMapIntensity: 1.4,
       });
     case "Poles":
       // gunmetal
@@ -91,8 +106,10 @@ const standard = (role: string) => {
 export const glow = {
   flow: () => standard("AccentLED"),
   uv: () => standard("UVLED"),
-  panel: () => standard("ShellUnder"),
+  panel: () => standard("Panel"),
 };
 
 export const HERO_FLOW_GLOW = 2.6;
 export const HERO_UV_GLOW = 2.2;
+/** Light the frosted panel scatters even when it is off, so it reads as acrylic, not paint. */
+export const PANEL_IDLE_GLOW = 0.06;

@@ -143,7 +143,7 @@ export function CareSection() {
             Care goes on.
           </h2>
           <p data-uv-lit className="yu-uv-lit mt-6 font-brand" style={BODY}>
-            A band of UV light passes over the rack while the room is dark. You can only read this where it falls.
+            With the rack raised all the way up, a band of UV light passes over the laundry while the room is dark. You can only read this where it falls.
           </p>
         </div>
       </div>

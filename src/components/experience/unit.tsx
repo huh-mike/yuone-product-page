@@ -9,7 +9,7 @@ import { Dimension } from "./dimension";
 import { EXPLODE } from "./explode";
 import { KitRack, kitState } from "./kit-rack";
 import { Labels } from "./labels";
-import { glow, HERO_FLOW_GLOW, HERO_UV_GLOW, restyle } from "./materials";
+import { glow, HERO_FLOW_GLOW, HERO_UV_GLOW, PANEL_IDLE_GLOW, restyle } from "./materials";
 import { RACK_Y, drawerY, rig, seg } from "./rig";
 import { Room } from "./room";
 import { sfx } from "./sound";
@@ -191,8 +191,8 @@ export function Unit({ onReady }: Props) {
     // after the hero the LEDs follow what is actually running
     const w = seg(r.T, 1, 1.1);
     glow.flow().emissiveIntensity = (HERO_FLOW_GLOW * (1 - w) + (0.5 + 3 * r.fan) * w) * r.power;
-    glow.uv().emissiveIntensity = (HERO_UV_GLOW * (1 - w) + (0.25 + 5 * r.uv) * w) * r.power;
-    glow.panel().emissiveIntensity = 2.4 * r.light;
+    glow.uv().emissiveIntensity = (HERO_UV_GLOW * (1 - w) + (0.25 + 5 * r.uv) * w) * r.power * r.uvReady;
+    glow.panel().emissiveIntensity = PANEL_IDLE_GLOW + 2.4 * r.light;
     glow.panel().emissive.copy(r.lightColor);
 
     if (uvLight.current) uvLight.current.intensity = 5 * r.uv * present.current.uv;
@@ -247,7 +247,7 @@ export function Unit({ onReady }: Props) {
           <Dimension read={readDrop} tick={[1, 0, 0]} color="#efe7da" />
           <Dimension read={readPole} tick={[0, 1, 0]} color="#222222" align="center" />
           <Room />
-          <pointLight ref={uvLight} color="#7a3dff" position={[0, -0.12, 0.08]} intensity={0} distance={2.4} decay={1.6} />
+          <pointLight ref={uvLight} color="#7a3dff" position={[0, -0.16, 0.08]} intensity={0} distance={2.4} decay={1.6} />
           <pointLight ref={sweepLight} color="#9a6bff" intensity={0} distance={1.6} decay={1.4} />
           <pointLight ref={panelLight} color="#ffdcb4" position={[0, -0.3, 0]} intensity={0} distance={3} decay={1.5} />
         </group>

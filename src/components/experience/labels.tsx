@@ -13,11 +13,11 @@ import { RACK_Y, rig } from "./rig";
  * `x` is negative because the unit faces away at this point in the story.
  */
 const PARTS: { name: string; note: string; x: number; y: number; travel: number }[] = [
-  { name: "Shell", note: "Satin white housing", x: -0.5, y: -0.05, travel: EXPLODE.shell },
+  { name: "Shell", note: "Satin black housing", x: -0.5, y: -0.05, travel: EXPLODE.shell },
   { name: "Chassis", note: "Motor and drive", x: -0.49, y: -0.01, travel: EXPLODE.plate },
-  { name: "Light panel", note: "Diffused LED underside", x: -0.5, y: -0.07, travel: EXPLODE.panel },
-  { name: "Flow", note: "Airflow module", x: -0.27, y: -0.07, travel: EXPLODE.flow },
-  { name: "UV Glow", note: "UV-light strip", x: -0.26, y: -0.03, travel: EXPLODE.uv },
+  { name: "Light panel", note: "Frosted acrylic, lights the room", x: -0.5, y: -0.07, travel: EXPLODE.panel },
+  { name: "Flow", note: "Airflow module", x: -0.27, y: -0.11, travel: EXPLODE.flow },
+  { name: "UV Glow", note: "UV-light strip", x: -0.26, y: -0.07, travel: EXPLODE.uv },
   { name: "Scissor lifts", note: "Raise and lower the rack", x: -0.33, y: -0.3, travel: EXPLODE.rack * 0.62 },
   { name: "Frame", note: "Two, three or four slots", x: -0.59, y: RACK_Y + 0.02, travel: EXPLODE.rack },
   { name: "Modules", note: "Solo, Duo or Flex", x: -0.59, y: RACK_Y, travel: EXPLODE.rack + EXPLODE.modules },

@@ -123,7 +123,11 @@ const narrowZoom = track([[1.36, 1], [1.44, 0.75], [1.76, 0.75], [1.84, 1], [2.4
 
 /* ---------- what the unit is doing ---------- */
 
-const drop = track([[1.0, RACK_DROP], [1.1, 0], [2.04, 0], [2.14, CARE_DROP], [4.0, CARE_DROP], [4.25, 0.12], [4.8, 0.12], [4.95, 0]]);
+// in care the rack hangs low while Flow dries, then rises all the way before UV Glow (UV only runs at the top)
+const drop = track([
+  [1.0, RACK_DROP], [1.1, 0], [2.04, 0], [2.14, CARE_DROP], [2.74, CARE_DROP], [2.8, 0], [3.04, 0], [3.14, CARE_DROP],
+  [4.0, CARE_DROP], [4.25, 0.12], [4.8, 0.12], [4.95, 0],
+]);
 const explode = track([[1.16, 0], [1.25, 1], [1.33, 1], [1.4, 0]]);
 const drawer = track([[1.36, 0], [1.45, 1], [1.76, 1], [1.84, 0]]);
 const swing = track([[1.64, 0], [1.7, 1], [1.76, 1], [1.8, 0]]);
@@ -139,7 +143,7 @@ const fan = track([[2.3, 0], [2.38, 1], [2.72, 1], [2.78, 0]]);
 const air = track([[2.36, 0], [2.44, 1], [2.7, 1], [2.76, 0]]);
 /** Laundry goes up wet at the start of the care section and dries under Flow. */
 const damp = track([[2.0, 0], [2.04, 1], [2.52, 1], [2.64, 0]]);
-const uv = track([[2.76, 0], [2.82, 1], [3.0, 1], [3.1, 0]]);
+const uv = track([[2.8, 0], [2.86, 1], [3.0, 1], [3.1, 0]]);
 const sweep = track([[2.8, 0], [3.0, 1]]);
 const lightsOut = track([[2.74, 0], [2.8, 1], [3.0, 1], [3.12, 0], [4.86, 0], [4.97, 1]]);
 /** 1 while the control panel (not the script above) decides what is on. */
@@ -164,9 +168,11 @@ const SCHEDULE: { at: number; note: string; set: ScheduleSet }[] = [
   { at: 7.5, note: "Lowered for the morning load", set: { height: 1, garments: true } },
   { at: 9, note: "Flow on", set: { flow: true } },
   { at: 13, note: "Rain outside. Flow and heating keep drying", set: { flow: true, heat: true } },
-  { at: 15, note: "Disinfect cycle", set: { flow: false, heat: false, uv: true } },
-  { at: 17, note: "Dry. Ready to collect", set: { uv: false } },
-  { at: 18.5, note: "Raised out of the way", set: { height: 0, garments: false } },
+  // UV only runs with the rack all the way up, so the rack goes up first
+  { at: 15, note: "Dry. Raised for the disinfect cycle", set: { flow: false, heat: false, height: 0 } },
+  { at: 16, note: "Disinfect cycle, rack at the top", set: { uv: true } },
+  { at: 17.5, note: "Disinfected. Ready to collect", set: { uv: false } },
+  { at: 18.5, note: "Collected, rack out of the way", set: { garments: false } },
   { at: 20.5, note: "Evening light, warm", set: { light: "warm" } },
   { at: 22.6, note: "Goodnight", set: { light: "off" } },
 ];
@@ -220,6 +226,8 @@ export const rig = {
   /** Flow speed multiplier, pushed up by scroll speed. */
   gust: 1,
   uv: 0,
+  /** 1 only while the rack is all the way up: the product will not run UV anywhere else. */
+  uvReady: 0,
   sweep: 0,
   light: 0,
   lightColor: new THREE.Color(LIGHT_COLORS.warm),
@@ -352,7 +360,12 @@ export function tickRig(t: number, dt: number) {
   if (c.light !== "off") lightGoal.set(LIGHT_COLORS[c.light]);
   rig.lightColor.lerp(lightGoal, ease);
   flowNow += ((c.flow ? 1 : 0) * wControl - flowNow) * ease;
-  uvNow += ((c.uv ? 1 : 0) * wControl - uvNow) * ease;
+  // UV is interlocked with the lift: it runs only with the rack all the way up, and the
+  // moment the rack leaves the top it switches off (the visitor turns it on again at the top)
+  const atTop = heightNow <= 0.001;
+  if (c.rackUp !== atTop) control.set({ rackUp: atTop });
+  if (c.uv && !atTop && c.driver === "you") control.set({ uv: false });
+  uvNow += ((c.uv && atTop ? 1 : 0) * wControl - uvNow) * ease;
   heatNow += ((c.heat ? 1 : 0) * wControl - heatNow) * ease;
 
   /* ---------- configurator ---------- */
@@ -405,6 +418,7 @@ export function tickRig(t: number, dt: number) {
     const scripted = drop(T);
     rig.drop = scripted + (heightNow * RACK_DROP - scripted) * wControl;
   }
+  rig.uvReady = 1 - seg(rig.drop, 0.001, 0.01);
 
   /* ---------- parts ---------- */
   rig.attach = seg(p, BEATS.attachStart, BEATS.attachEnd);
@@ -447,7 +461,7 @@ export function tickRig(t: number, dt: number) {
   rig.swingAngle = Math.sin(t * 0.9) * 0.55 * rig.fan * calm;
   rig.damp = damp(T);
   rig.humidity = Math.round(41 + 45 * rig.damp);
-  rig.uv = Math.max(uv(T), uvNow);
+  rig.uv = Math.max(uv(T), uvNow) * rig.uvReady;
   rig.sweep = T < 3.05 ? sweep(T) : (t * 0.12) % 1;
   rig.light = lightNow;
   rig.heat = heatNow;

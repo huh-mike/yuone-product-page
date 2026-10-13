@@ -110,6 +110,8 @@ export type ControlState = {
   clock: string;
   /** What the schedule just did, for the panel's status line. */
   note: string;
+  /** The rack is all the way up: the only position UV may run in. Set by the rig. */
+  rackUp: boolean;
 };
 
 export const control = createStore<ControlState>({
@@ -120,6 +122,7 @@ export const control = createStore<ControlState>({
   driver: "you",
   clock: "",
   note: "",
+  rackUp: false,
 });
 
 export type BuildState = {
