@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { ANCHORS, build, control, pageT, stage, type EndsType, type LightMode, type ModuleType } from "./stage";
+import { ANCHORS, DEFAULT_BUILD, build, control, pageT, stage, type FeatureSlot, type FrameType, type LightMode, type ModuleType } from "./stage";
 
 /**
  * The choreography. One function turns "where the reader is on the page" into
@@ -186,6 +186,8 @@ export const LIGHT_COLORS: Record<Exclude<LightMode, "off">, string> = {
 
 const SCRIPTED_SLOTS: ModuleType[] = ["solo", "duo", "flex", "duo"];
 const HERO_SLOTS: ModuleType[] = ["flex", "flex", "flex"];
+/** Flow and UV Glow where the model carries them. */
+const SCRIPTED_FEATURES: FeatureSlot[] = DEFAULT_BUILD.features;
 
 /** Beats the reduced-motion mode snaps to, so the unit cuts instead of flying. */
 const CUTS = ANCHORS.filter((a) => a > 1);
@@ -212,11 +214,11 @@ export const rig = {
   swing: 0,
   count: 3,
   slots: HERO_SLOTS,
-  ends: "flex" as EndsType,
+  frame: "max" as FrameType,
   garments: [0, 0, 0, 0],
   damp: 0,
-  hasFlow: true,
-  hasUv: true,
+  /** What sits in each of the base's smart-feature slots. */
+  features: SCRIPTED_FEATURES,
   fan: 0,
   /** Accumulated fan rotation, radians. */
   fanAngle: 0,
@@ -436,15 +438,14 @@ export function tickRig(t: number, dt: number) {
   if (building) {
     rig.slots = b.slots;
     rig.count = b.slots.length;
-    rig.ends = b.ends;
-    rig.hasFlow = b.flow;
-    rig.hasUv = b.uv;
+    rig.frame = b.frame;
+    rig.features = b.features;
   } else {
     rig.slots = T < 1.07 ? HERO_SLOTS : SCRIPTED_SLOTS;
     rig.count = T < 1.86 ? 3 : T < 1.9 ? 2 : T < 1.95 ? 3 : 4;
-    rig.ends = "flex";
-    rig.hasFlow = true;
-    rig.hasUv = true;
+    // Max takes three modules at most, so the four-slot frame is a Plus
+    rig.frame = rig.count > 3 ? "plus" : "max";
+    rig.features = SCRIPTED_FEATURES;
   }
 
   const showGarments = wControl > 0.5 ? scheduleGarments || control.get().driver === "you" : true;

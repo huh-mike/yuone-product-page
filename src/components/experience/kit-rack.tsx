@@ -8,7 +8,7 @@ import { restyle } from "./materials";
 import { drawerY, rig } from "./rig";
 import { EXPLODE } from "./explode";
 import { sfx } from "./sound";
-import type { EndsType, ModuleType } from "./stage";
+import type { FrameType, ModuleType } from "./stage";
 
 export const KIT_URL = "/models/yu-one-kit.glb";
 const DRACO_PATH = "/draco/";
@@ -137,7 +137,8 @@ type Slot = {
 
 type Kit = {
   bars: THREE.Object3D;
-  ends: Record<Exclude<EndsType, "core">, { a: THREE.Object3D; b: THREE.Object3D; v: number }>;
+  /** End poles: fixed on Plus, swing-out on Max; Core has none. */
+  ends: Record<Exclude<FrameType, "core">, { a: THREE.Object3D; b: THREE.Object3D; v: number }>;
   slots: Slot[];
   n: number;
   started: boolean;
@@ -154,10 +155,10 @@ function buildKit(root: THREE.Group, scene: THREE.Object3D, textures: Record<Gar
   const bars = pick("Kit_Bars_3");
   root.add(bars);
   const ends = {
-    duo: { a: pick("Kit_EndsDuo_A"), b: pick("Kit_EndsDuo_B"), v: 0 },
-    flex: { a: pick("Kit_EndsFlex_A"), b: pick("Kit_EndsFlex_B"), v: 1 },
+    plus: { a: pick("Kit_EndsDuo_A"), b: pick("Kit_EndsDuo_B"), v: 0 },
+    max: { a: pick("Kit_EndsFlex_A"), b: pick("Kit_EndsFlex_B"), v: 1 },
   };
-  root.add(ends.duo.a, ends.duo.b, ends.flex.a, ends.flex.b);
+  root.add(ends.plus.a, ends.plus.b, ends.max.a, ends.max.b);
 
   for (const tex of Object.values(textures)) {
     tex.colorSpace = THREE.SRGBColorSpace;
@@ -247,9 +248,9 @@ export function KitRack() {
     kit.bars.scale.z = (SLOT * kit.n + 0.065) / BARS_3_LENGTH;
     const shift = (kit.n - 3) * (SLOT / 2);
 
-    for (const kind of ["duo", "flex"] as const) {
+    for (const kind of ["plus", "max"] as const) {
       const end = kit.ends[kind];
-      const goal = r.ends === kind ? 1 : 0;
+      const goal = r.frame === kind ? 1 : 0;
       end.v = first ? goal : end.v + (goal - end.v) * Math.min(1, dt * 6);
       const away = (1 - end.v) * 0.18;
       end.a.visible = end.b.visible = end.v > 0.02;

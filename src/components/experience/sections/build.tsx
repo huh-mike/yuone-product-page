@@ -4,7 +4,20 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { EYEBROW, TITLE, sectionTimeline, vf } from "../beats";
-import { build, decodeBuild, encodeBuild, stage, type BuildState, type EndsType, type ModuleType } from "../stage";
+import {
+  FEATURE_SLOTS,
+  FRAMES,
+  build,
+  decodeBuild,
+  encodeBuild,
+  flowBlocked,
+  sanitizeBuild,
+  stage,
+  type BuildState,
+  type FeatureSlot,
+  type FrameType,
+  type ModuleType,
+} from "../stage";
 
 gsap.registerPlugin(useGSAP);
 
@@ -17,11 +30,8 @@ const LABEL = {
 };
 
 const MODULE_NAME: Record<ModuleType, string> = { solo: "Solo", duo: "Duo", flex: "Flex" };
-const ENDS: { key: EndsType; name: string; note: string }[] = [
-  { key: "core", name: "Core", note: "Bars only" },
-  { key: "duo", name: "Duo", note: "A pole at each end" },
-  { key: "flex", name: "Flex", note: "Swing-out poles at each end" },
-];
+const FRAME_OPTIONS = (Object.keys(FRAMES) as FrameType[]).map((key) => ({ key, name: FRAMES[key].name }));
+const FEATURE_NAME = { flow: "Flow", uv: "UV Glow" } as const;
 
 function Choice<T extends string | number>({
   options,
@@ -29,7 +39,7 @@ function Choice<T extends string | number>({
   onPick,
   label,
 }: {
-  options: { key: T; name: string }[];
+  options: { key: T; name: string; disabled?: boolean; why?: string }[];
   value: T;
   onPick: (key: T) => void;
   label: string;
@@ -42,8 +52,10 @@ function Choice<T extends string | number>({
           type="button"
           role="radio"
           aria-checked={o.key === value}
+          disabled={o.disabled}
+          title={o.disabled ? o.why : undefined}
           onClick={() => onPick(o.key)}
-          className={`flex-1 rounded-full px-3 py-1.5 font-brand text-[12px] transition ${
+          className={`flex-1 rounded-full px-3 py-1.5 font-brand text-[12px] transition disabled:cursor-not-allowed disabled:text-white/25 disabled:hover:text-white/25 ${
             o.key === value ? "bg-[#efe7da] text-[#16171b]" : "text-white/70 hover:text-white"
           }`}
         >
@@ -69,10 +81,9 @@ function summary(b: BuildState) {
   const count = (t: ModuleType) => b.slots.filter((s) => s === t).length;
   const lines = [
     { name: "YU ONE base", qty: 1 },
-    { name: `Frame ${ENDS.find((e) => e.key === b.ends)!.name}, ${b.slots.length} slots`, qty: 1 },
+    { name: `Frame ${FRAMES[b.frame].name}, ${b.slots.length} slots`, qty: 1 },
     ...(["solo", "duo", "flex"] as const).map((t) => ({ name: `Module ${MODULE_NAME[t]}`, qty: count(t) })),
-    { name: "Flow", qty: b.flow ? 1 : 0 },
-    { name: "UV Glow", qty: b.uv ? 1 : 0 },
+    ...(["flow", "uv"] as const).map((f) => ({ name: FEATURE_NAME[f], qty: b.features.filter((s) => s === f).length })),
   ];
   return lines.filter((l) => l.qty > 0);
 }
@@ -100,7 +111,10 @@ export function BuildSection() {
     while (slots.length < n) slots.push("duo");
     build.set({ slots });
   };
+  // Max holds three modules at most, so picking it drops a fourth
+  const setFrame = (frame: FrameType) => build.set(sanitizeBuild({ ...b, frame }));
   const setSlot = (i: number, type: ModuleType) => build.set({ slots: b.slots.map((s, k) => (k === i ? type : s)) });
+  const setFeature = (i: number, f: FeatureSlot) => build.set({ features: b.features.map((s, k) => (k === i ? f : s)) });
 
   const share = async () => {
     const url = new URL(window.location.href);
@@ -179,12 +193,18 @@ export function BuildSection() {
                 label="Frame width"
                 value={b.slots.length}
                 onPick={setWidth}
-                options={[2, 3, 4].map((n) => ({ key: n, name: `${n} slots` }))}
+                options={[2, 3, 4].map((n) => ({
+                  key: n,
+                  name: `${n} slots`,
+                  disabled: n > FRAMES[b.frame].maxSlots,
+                  why: `${FRAMES[b.frame].name} holds up to ${FRAMES[b.frame].maxSlots} modules`,
+                }))}
               />
             </Row>
             <Row title="Frame">
-              <Choice label="Frame type" value={b.ends} onPick={(ends) => build.set({ ends })} options={ENDS} />
+              <Choice label="Frame type" value={b.frame} onPick={setFrame} options={FRAME_OPTIONS} />
             </Row>
+            <p className="pl-[5.95rem] font-brand text-[11px] text-white/50">{FRAMES[b.frame].note}</p>
             {b.slots.map((slot, i) => (
               <Row key={i} title={`Slot ${i + 1}`}>
                 <Choice
@@ -195,29 +215,26 @@ export function BuildSection() {
                 />
               </Row>
             ))}
-            <Row title="Add-ons">
-              <div className="flex gap-1">
-                {(
-                  [
-                    { key: "flow", name: "Flow" },
-                    { key: "uv", name: "UV Glow" },
-                  ] as const
-                ).map((a) => (
-                  <button
-                    key={a.key}
-                    type="button"
-                    role="switch"
-                    aria-checked={b[a.key]}
-                    onClick={() => build.set({ [a.key]: !b[a.key] })}
-                    className={`flex-1 rounded-full px-3 py-1.5 font-brand text-[12px] transition ${
-                      b[a.key] ? "bg-[#F0765A] text-white" : "bg-white/[0.07] text-white/70 hover:text-white"
-                    }`}
-                  >
-                    {a.name}
-                  </button>
-                ))}
-              </div>
-            </Row>
+            {Array.from({ length: FEATURE_SLOTS }, (_, i) => (
+              <Row key={`base-${i}`} title={`Base ${i + 1}`}>
+                <Choice
+                  label={`Smart feature in base slot ${i + 1}`}
+                  value={b.features[i] ?? "none"}
+                  onPick={(f) => setFeature(i, f === "none" ? null : f)}
+                  options={[
+                    { key: "none" as const, name: "None" },
+                    { key: "uv" as const, name: "UV Glow" },
+                    {
+                      key: "flow" as const,
+                      name: "Flow",
+                      disabled: flowBlocked(b.features, i) && b.features[i] !== "flow",
+                      why: "The slot beside this one already has Flow",
+                    },
+                  ]}
+                />
+              </Row>
+            ))}
+            <p className="pl-[5.95rem] font-brand text-[11px] text-white/50">Three slots in the base. No two Flow side by side.</p>
             <Row title="Your space">
               <div className="flex items-center gap-3">
                 <button

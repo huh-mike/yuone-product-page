@@ -43,7 +43,7 @@ function Peg() {
  * 01 — Modules, on the drawing board.
  *   anatomy   the unit comes apart into its eight parts
  *   drawer    Solo, Duo and Flex laid out one under the other, each with its load
- *   frame     the frame grows from two slots to four
+ *   frame     the frame grows from two slots to four (a Plus at four: Max holds three)
  */
 export function ModulesSection() {
   const section = useRef<HTMLElement>(null);
@@ -111,8 +111,8 @@ export function ModulesSection() {
             One machine.
           </h2>
           <p className="mt-6 font-brand text-[#222]/70" style={BODY}>
-            Light, air, UV and the lift live in the base. The frame hangs below it, and the frame is where your
-            modules click in.
+            The light and the lift are built into the base, and Flow and UV Glow fill its three slots. The frame
+            hangs below it, and the frame is where your modules click in.
           </p>
         </div>
 
@@ -168,8 +168,9 @@ export function ModulesSection() {
             or four across.
           </h2>
           <p className="mt-6 font-brand text-[#222]/70" style={BODY}>
-            Choose a width for the space you have. Every slot takes any module, so the mix is yours and it can
-            change later.
+            Choose a width for the space you have, and a frame: Core is the bars alone, Plus adds a pole at each
+            end, Max adds swing-out poles and takes up to three. Every slot takes any module, so the mix is yours
+            and it can change later.
           </p>
           <ol
             className="mt-8 flex gap-7 font-display uppercase"

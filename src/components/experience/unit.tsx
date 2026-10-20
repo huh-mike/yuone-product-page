@@ -11,6 +11,7 @@ import { KitRack, kitState } from "./kit-rack";
 import { Labels } from "./labels";
 import { glow, HERO_FLOW_GLOW, HERO_UV_GLOW, PANEL_IDLE_GLOW, restyle } from "./materials";
 import { RACK_Y, drawerY, rig, seg } from "./rig";
+import type { FeatureType } from "./stage";
 import { Room } from "./room";
 import { sfx } from "./sound";
 
@@ -30,6 +31,14 @@ const SEATED = [54 / 120, 80 / 120, 106 / 120];
 const LIFT_CLIP = "Lift";
 const LIFT_TRAVEL = 0.9;
 
+/**
+ * The base's three smart-feature slots, front to back across its depth, metres
+ * (Base_slot_1..3 in the configurator's base). The model carries Flow in the
+ * middle slot and UV Glow in the back one; other slots get a copy, moved over.
+ */
+const FEATURE_Z = [-0.08, 0, 0.08];
+const NATIVE_SLOT: Record<FeatureType, number> = { flow: 1, uv: 2 };
+
 type Assembly = {
   mixer: THREE.AnimationMixer;
   actions: THREE.AnimationAction[];
@@ -38,11 +47,12 @@ type Assembly = {
   shell: THREE.Group;
   plate: THREE.Group;
   panel: THREE.Group;
-  flow: THREE.Group;
-  uv: THREE.Group;
+  /** Each feature, once per base slot. */
+  features: Record<FeatureType, THREE.Group[]>;
   lift: THREE.Group;
   rack: THREE.Group;
-  vane: THREE.Group;
+  /** Flow's louvre, in every copy. */
+  vanes: THREE.Group[];
 };
 
 /**
@@ -78,6 +88,7 @@ function assemble(model: THREE.Object3D, animations: THREE.AnimationClip[]): Ass
 
   // Flow's outlet vane swings about its own long axis
   const vane = new THREE.Group();
+  vane.name = "part:vane";
   const blade = model.getObjectByName("FanBlade");
   if (blade) {
     flow.add(vane);
@@ -85,6 +96,18 @@ function assemble(model: THREE.Object3D, animations: THREE.AnimationClip[]): Ass
     flow.worldToLocal(new THREE.Box3().setFromObject(blade).getCenter(vane.position));
     vane.attach(blade);
   }
+
+  // one of each feature per base slot: the model's own where it sits, copies elsewhere
+  const perSlot = (part: THREE.Group, native: number) =>
+    FEATURE_Z.map((z, k) => {
+      if (k === native) return part;
+      const copy = part.clone(true);
+      copy.position.z = z - FEATURE_Z[native];
+      model.add(copy);
+      return copy;
+    });
+  const features = { flow: perSlot(flow, NATIVE_SLOT.flow), uv: perSlot(uv, NATIVE_SLOT.uv) };
+  const vanes = features.flow.map((g) => g.getObjectByName("part:vane") as THREE.Group).filter(Boolean);
 
   const mixer = new THREE.AnimationMixer(model);
   const scrubbed = (clip: THREE.AnimationClip) => {
@@ -99,7 +122,7 @@ function assemble(model: THREE.Object3D, animations: THREE.AnimationClip[]): Ass
   const duration = moduleClips.reduce((m, c) => Math.max(m, c.duration), 0);
   const liftAction = liftClip ? scrubbed(liftClip) : null;
 
-  return { mixer, actions, duration, liftAction, shell, plate, panel, flow, uv, lift, rack, vane };
+  return { mixer, actions, duration, liftAction, shell, plate, panel, features, lift, rack, vanes };
 }
 
 /** Parts that the configurator can take off slide away below and hide. */
@@ -119,7 +142,8 @@ export function Unit({ onReady }: Props) {
   const uvLight = useRef<THREE.PointLight>(null);
   const sweepLight = useRef<THREE.PointLight>(null);
   const panelLight = useRef<THREE.PointLight>(null);
-  const present = useRef({ flow: 1, uv: 1 });
+  /** How far each feature in each base slot is mounted, 0‥1. */
+  const present = useRef<Record<FeatureType, number[]>>({ flow: [0, 1, 0], uv: [0, 0, 1] });
   const attached = useRef(0);
 
   // model is decoded and mounted: let the page start its entrance
@@ -171,10 +195,13 @@ export function Unit({ onReady }: Props) {
     unit.lift.position.y = up;
 
     const k = Math.min(1, dt * 5);
-    present.current.flow += ((r.hasFlow ? 1 : 0) - present.current.flow) * k;
-    present.current.uv += ((r.hasUv ? 1 : 0) - present.current.uv) * k;
-    fit(unit.flow, present.current.flow, EXPLODE.flow * e + up);
-    fit(unit.uv, present.current.uv, EXPLODE.uv * e + up);
+    for (const type of ["flow", "uv"] as const) {
+      const shown = present.current[type];
+      unit.features[type].forEach((part, slot) => {
+        shown[slot] += ((r.features[slot] === type ? 1 : 0) - shown[slot]) * k;
+        fit(part, shown[slot], EXPLODE[type] * e + up);
+      });
+    }
 
     const rackY = -r.drop + EXPLODE.rack * e;
     unit.rack.position.y = rackY;
@@ -186,7 +213,7 @@ export function Unit({ onReady }: Props) {
     unit.mixer.update(0);
 
     // the louvre sweeps the stream across the rows; the air in airflow.tsx leans with it
-    unit.vane.rotation.x = r.swingAngle;
+    for (const vane of unit.vanes) vane.rotation.x = r.swingAngle;
 
     // after the hero the LEDs follow what is actually running
     const w = seg(r.T, 1, 1.1);
@@ -195,9 +222,11 @@ export function Unit({ onReady }: Props) {
     glow.panel().emissiveIntensity = PANEL_IDLE_GLOW + 2.4 * r.light;
     glow.panel().emissive.copy(r.lightColor);
 
-    if (uvLight.current) uvLight.current.intensity = 5 * r.uv * present.current.uv;
+    // the UV light falls from wherever UV Glow is mounted
+    const uvMounted = Math.max(...present.current.uv);
+    if (uvLight.current) uvLight.current.intensity = 5 * r.uv * uvMounted;
     if (sweepLight.current) {
-      sweepLight.current.intensity = 7 * r.uv * present.current.uv;
+      sweepLight.current.intensity = 7 * r.uv * uvMounted;
       sweepLight.current.position.set((r.sweep * 2 - 1) * 0.7, rackY - 0.62, 0.35);
     }
     if (panelLight.current) {
