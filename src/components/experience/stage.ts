@@ -147,6 +147,13 @@ export const control = createStore<ControlState>({
   rackUp: false,
 });
 
+/**
+ * How the product is drawn: live WebGL, or stills of the same shots for
+ * machines that cannot draw it smoothly. "probing" until the client decides.
+ */
+export type RenderMode = "probing" | "live" | "stills";
+export const render = createStore<{ mode: RenderMode }>({ mode: "probing" });
+
 export type BuildState = {
   frame: FrameType;
   slots: ModuleType[];

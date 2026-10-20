@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -12,8 +12,10 @@ import { CareSection } from "./sections/care";
 import { ControlSection } from "./sections/control";
 import { HeroSection } from "./sections/hero";
 import { ModulesSection } from "./sections/modules";
+import { chooseMode } from "./quality";
 import { settleRig, tickRig } from "./rig";
-import { SECTIONS, stage } from "./stage";
+import { SECTIONS, render, stage } from "./stage";
+import { STILL_AT, STILL_SETS, Stills, StillsNote } from "./stills";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -27,11 +29,19 @@ const Scene = dynamic(() => import("./scene").then((m) => m.Scene), { ssr: false
  * themselves are only scroll length and words; each reports its progress to
  * the shared stage, and the rig turns that into the next frame.
  */
+const useRenderMode = () => useSyncExternalStore(render.subscribe, () => render.get().mode, () => "probing" as const);
+
 export function Experience() {
   const root = useRef<HTMLDivElement>(null);
   const revealed = useRef(false);
+  const mode = useRenderMode();
 
-  /** Called once the GLB is decoded and mounted in the canvas. */
+  // live 3D, or stills where the machine would draw it in software (quality.ts)
+  useEffect(() => {
+    render.set({ mode: chooseMode() });
+  }, []);
+
+  /** Called once the GLB is decoded and mounted in the canvas, or the first still has loaded. */
   const onSceneReady = useCallback(() => {
     if (revealed.current || !root.current) return;
     revealed.current = true;
@@ -71,6 +81,8 @@ export function Experience() {
       if (process.env.NODE_ENV === "development") {
         // for checking a frame in a throttled tab: window.__yu.settle() after scrolling
         (window as unknown as { __yu?: unknown }).__yu = {
+          /** For scripts/capture-stills.mjs. */
+          stills: { at: STILL_AT, sets: STILL_SETS },
           settle() {
             ScrollTrigger.update();
             ScrollTrigger.getAll().forEach((st) => {
@@ -129,9 +141,10 @@ export function Experience() {
       {/* the cables the Buy button is lowered on at the end, behind the unit */}
       <CtaCables />
 
-      {/* ---------- 3D product (fades in once the model is decoded) ---------- */}
+      {/* ---------- 3D product (fades in once the model is decoded), or its stills ---------- */}
       <div data-canvas className="pointer-events-none invisible fixed inset-0 z-10 opacity-0">
-        <Scene onReady={onSceneReady} />
+        {mode === "live" && <Scene onReady={onSceneReady} />}
+        {mode === "stills" && <Stills onReady={onSceneReady} />}
       </div>
 
       <div className="relative z-20">
@@ -143,6 +156,7 @@ export function Experience() {
       </div>
 
       <Hud />
+      {mode === "stills" && <StillsNote />}
     </div>
   );
 }

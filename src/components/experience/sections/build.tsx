@@ -8,6 +8,7 @@ import {
   FEATURE_SLOTS,
   FRAMES,
   build,
+  render,
   decodeBuild,
   encodeBuild,
   flowBlocked,
@@ -22,6 +23,7 @@ import {
 gsap.registerPlugin(useGSAP);
 
 const useBuild = () => useSyncExternalStore(build.subscribe, build.get, build.get);
+const useStills = () => useSyncExternalStore(render.subscribe, () => render.get().mode === "stills", () => false);
 
 const LABEL = {
   ...vf(400, 105),
@@ -96,6 +98,7 @@ function summary(b: BuildState) {
 export function BuildSection() {
   const section = useRef<HTMLElement>(null);
   const b = useBuild();
+  const stills = useStills();
   const [copied, setCopied] = useState(false);
   const drag = useRef<{ x: number; y: number; yaw: number; pitch: number } | null>(null);
 
@@ -167,12 +170,15 @@ export function BuildSection() {
           onPointerUp={() => (drag.current = null)}
           onPointerCancel={() => (drag.current = null)}
         >
-          <p
-            className="absolute bottom-[7svh] right-[6vw] hidden font-display uppercase text-white/60 md:block"
-            style={{ ...vf(400, 105), fontSize: "clamp(0.6rem, 0.78vw, 0.82rem)", letterSpacing: "0.28em" }}
-          >
-            Drag to turn
-          </p>
+          {/* a still cannot be turned */}
+          {!stills && (
+            <p
+              className="absolute bottom-[7svh] right-[6vw] hidden font-display uppercase text-white/60 md:block"
+              style={{ ...vf(400, 105), fontSize: "clamp(0.6rem, 0.78vw, 0.82rem)", letterSpacing: "0.28em" }}
+            >
+              Drag to turn
+            </p>
+          )}
         </div>
 
         {/* ---------- configurator ---------- */}
@@ -186,6 +192,13 @@ export function BuildSection() {
           <h2 className="mt-4 font-display text-[#efe7da]" style={{ ...TITLE, fontSize: "clamp(1.5rem, 2.4vw, 2.6rem)" }}>
             Build the rack that fits you.
           </h2>
+
+          {stills && (
+            <p className="mt-3 font-brand text-[12px] text-white/55">
+              Live 3D is off on this device, so the picture shows the standard build. Your choices still go in the
+              parts list and the link.
+            </p>
+          )}
 
           <div className="mt-6 space-y-3">
             <Row title="Width">
