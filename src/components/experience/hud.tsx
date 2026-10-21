@@ -136,7 +136,11 @@ export function Hud() {
   return (
     <div ref={root} className="pointer-events-none fixed inset-0 z-40 transition-colors duration-500">
       {/* ---------- buy: always within reach, and the last thing on the page ---------- */}
-      <div data-buy className="absolute right-4 top-4 will-change-transform md:right-[6vw] md:top-6">
+      {/* embedded on the store, it moves down clear of the store's header while that shows (embed.ts) */}
+      <div
+        data-buy
+        className="absolute right-4 top-[calc(1rem+var(--yu-inset-top,0px))] will-change-transform md:right-[6vw] md:top-[calc(1.5rem+var(--yu-inset-top,0px))]"
+      >
         {/* the lit ring and the light it throws, once the button has landed */}
         <span
           data-buy-ring

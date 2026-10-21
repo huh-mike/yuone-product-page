@@ -2,7 +2,7 @@
  * Embedded on yuhome.com.sg, the Shopify page owns the scroll.
  *
  * The page sits in an iframe one screen tall, pinned inside a section as tall
- * as this whole page (shopify/sections/yu-one-experience.liquid). The visitor
+ * as this whole page (shopify/yu-one-embed.liquid). The visitor
  * scrolls the Shopify page, so its nav bar hides and its footer follows as on
  * any other page; the host sends how far into the section they are, and this
  * page scrolls itself to the same place. Because the frame is exactly one
@@ -10,7 +10,8 @@
  *
  * Messages, all plain objects posted to one checked origin:
  *   host  → frame  { source: "yu-one-host", type: "hello", url }   the host is ready; its address, for share links
- *   host  → frame  { source: "yu-one-host", type: "scroll", y }    px scrolled into the section
+ *   host  → frame  { source: "yu-one-host", type: "scroll", y, inset }  px scrolled into the section;
+ *                                                                   px of the host's header over the frame's top
  *   frame → host   { source: "yu-one", type: "ready" }
  *   frame → host   { source: "yu-one", type: "height", height }   px, the section's height
  *   frame → host   { source: "yu-one", type: "scroll-to", y, smooth }  an in-page link, as px into the section
@@ -75,7 +76,7 @@ export function startEmbed() {
 
   const onMessage = (e: MessageEvent) => {
     if (e.source !== window.parent || !HOSTS.some((h) => h.test(e.origin))) return;
-    const data = e.data as { source?: string; type?: string; url?: unknown; y?: unknown } | null;
+    const data = e.data as { source?: string; type?: string; url?: unknown; y?: unknown; inset?: unknown } | null;
     if (!data || data.source !== "yu-one-host") return;
 
     if (data.type === "hello") {
@@ -96,6 +97,10 @@ export function startEmbed() {
       if (typeof data.url === "string") embed.hostUrl = data.url;
     } else if (data.type === "scroll" && embed.hosted && typeof data.y === "number") {
       window.scrollTo(0, data.y);
+      // the store's header, while it slides in over the top: the buttons up there move clear of it
+      if (typeof data.inset === "number") {
+        document.documentElement.style.setProperty("--yu-inset-top", `${Math.max(0, Math.min(data.inset, 200))}px`);
+      }
     }
   };
 

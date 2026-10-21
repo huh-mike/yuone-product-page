@@ -114,7 +114,7 @@ export function Stills({ onReady }: { onReady: () => void }) {
 /** Says why the picture is still, and lets the visitor try the live 3D anyway. */
 export function StillsNote() {
   return (
-    <div className="pointer-events-auto fixed left-4 top-4 z-40 flex items-center gap-3 rounded-full border border-white/15 bg-[#0c0d11]/70 py-1.5 pl-4 pr-1.5 font-brand text-[12px] text-white/75">
+    <div className="pointer-events-auto fixed left-4 top-[calc(1rem+var(--yu-inset-top,0px))] z-40 flex items-center gap-3 rounded-full border border-white/15 bg-[#0c0d11]/70 py-1.5 pl-4 pr-1.5 font-brand text-[12px] text-white/75">
       <span>Simplified view for this device</span>
       <button
         type="button"
