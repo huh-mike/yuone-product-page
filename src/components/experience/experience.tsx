@@ -12,6 +12,7 @@ import { CareSection } from "./sections/care";
 import { ControlSection } from "./sections/control";
 import { HeroSection } from "./sections/hero";
 import { ModulesSection } from "./sections/modules";
+import { startEmbed } from "./embed";
 import { chooseMode } from "./quality";
 import { settleRig, tickRig } from "./rig";
 import { SECTIONS, render, stage } from "./stage";
@@ -40,6 +41,9 @@ export function Experience() {
   useEffect(() => {
     render.set({ mode: chooseMode() });
   }, []);
+
+  // embedded on the store, the store's page owns the scroll (embed.ts)
+  useEffect(() => startEmbed(), []);
 
   /** Called once the GLB is decoded and mounted in the canvas, or the first still has loaded. */
   const onSceneReady = useCallback(() => {

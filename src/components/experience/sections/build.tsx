@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { EYEBROW, TITLE, sectionTimeline, vf } from "../beats";
+import { embed, showAddress } from "../embed";
 import {
   FEATURE_SLOTS,
   FRAMES,
@@ -120,8 +121,10 @@ export function BuildSection() {
   const setFeature = (i: number, f: FeatureSlot) => build.set({ features: b.features.map((s, k) => (k === i ? f : s)) });
 
   const share = async () => {
-    const url = new URL(window.location.href);
-    url.search = `?rack=${encodeBuild(b)}`;
+    // embedded on the store, the link is to the store's page, not to this frame
+    const url = new URL(embed.hostUrl ?? window.location.href);
+    if (embed.hostUrl) url.searchParams.set("rack", encodeBuild(b));
+    else url.search = `?rack=${encodeBuild(b)}`;
     url.hash = "build";
     try {
       await navigator.clipboard.writeText(url.toString());
@@ -129,7 +132,8 @@ export function BuildSection() {
       window.setTimeout(() => setCopied(false), 2200);
     } catch {
       // clipboard blocked: put the link in the address bar instead
-      window.history.replaceState(null, "", url);
+      if (embed.hosted) showAddress(url.toString());
+      else window.history.replaceState(null, "", url);
     }
   };
 

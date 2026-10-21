@@ -28,6 +28,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Embedded on the store, the store's page scrolls and this one follows it (embed.ts):
+   the frame's own scrolling is off, so the wheel and swipes pass through to the store. */
+html.yu-hosted {
+  overflow: hidden;
+}
+
 /* The custom cursor component adds this class only on fine-pointer devices. */
 .has-custom-cursor,
 .has-custom-cursor * {

@@ -1,0 +1,125 @@
+{% comment %}
+  YU ONE experience, embedded so that this page owns the scroll.
+
+  The experience runs in an iframe one screen tall, pinned (position: sticky)
+  inside a wrapper as tall as the whole experience. Visitors scroll this page,
+  so the header hides and the footer follows as on any other page; the script
+  tells the frame how far into the wrapper they are and the frame follows.
+
+  The frame reports its own height, so the wrapper always matches it. Share
+  links (?rack=… and #build) are passed through to the frame.
+
+  For position: sticky to work, no element around this section may have
+  overflow: hidden, auto or scroll (overflow-x: clip is fine).
+
+  Source and protocol: src/components/experience/embed.ts in yuone-product-page.
+{% endcomment %}
+
+<div class="yu-one-track" data-yu-one-track>
+  <iframe
+    class="yu-one-frame"
+    data-yu-one-frame
+    data-src="{{ section.settings.url | escape }}"
+    title="YU ONE"
+    allow="fullscreen; clipboard-write; xr-spatial-tracking"
+  ></iframe>
+</div>
+
+<style>
+  .yu-one-track {
+    position: relative;
+    /* until the frame reports its height */
+    height: 100vh;
+    height: 100svh;
+  }
+  .yu-one-frame {
+    position: sticky;
+    top: 0;
+    display: block;
+    width: 100%;
+    height: 100vh;
+    height: 100svh;
+    border: 0;
+  }
+</style>
+
+<script>
+  (() => {
+    const track = document.querySelector("[data-yu-one-track]");
+    const frame = track && track.querySelector("[data-yu-one-frame]");
+    if (!frame) return;
+
+    // a shared link to this page opens the frame on the same build and section
+    const src = new URL(frame.dataset.src);
+    const here = new URL(window.location.href);
+    if (here.searchParams.has("rack")) src.searchParams.set("rack", here.searchParams.get("rack"));
+    if (here.hash) src.hash = here.hash;
+    const ORIGIN = src.origin;
+
+    const send = (message) => {
+      if (frame.contentWindow) frame.contentWindow.postMessage(Object.assign({ source: "yu-one-host" }, message), ORIGIN);
+    };
+
+    // px scrolled into the wrapper, within what the frame can scroll
+    const offset = () => {
+      const max = Math.max(0, track.offsetHeight - frame.offsetHeight);
+      return Math.min(Math.max(-track.getBoundingClientRect().top, 0), max);
+    };
+    const sync = () => send({ type: "scroll", y: offset() });
+
+    // say hello until the frame answers: it may still be loading its scripts
+    let ready = false;
+    let tries = 0;
+    const hello = () => send({ type: "hello", url: window.location.href });
+    const knock = window.setInterval(() => {
+      if (ready || ++tries > 50) return window.clearInterval(knock);
+      hello();
+    }, 300);
+    frame.addEventListener("load", hello);
+
+    window.addEventListener("message", (e) => {
+      if (e.origin !== ORIGIN || e.source !== frame.contentWindow) return;
+      const data = e.data;
+      if (!data || data.source !== "yu-one") return;
+
+      if (data.type === "ready") {
+        ready = true;
+        sync();
+      } else if (data.type === "height" && typeof data.height === "number") {
+        track.style.height = data.height + "px";
+        sync();
+      } else if (data.type === "scroll-to" && typeof data.y === "number") {
+        // an in-page link in the experience, such as "Build yours"
+        window.scrollTo({
+          top: track.getBoundingClientRect().top + window.scrollY + data.y,
+          behavior: data.smooth ? "smooth" : "auto",
+        });
+      } else if (data.type === "address" && typeof data.url === "string") {
+        // a share link, where the frame could not reach the clipboard
+        const url = new URL(data.url, window.location.href);
+        if (url.origin === window.location.origin) window.history.replaceState(null, "", url);
+      }
+    });
+
+    window.addEventListener("scroll", sync, { passive: true });
+    window.addEventListener("resize", sync);
+
+    frame.src = src.href;
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "YU ONE experience",
+  "settings": [
+    {
+      "type": "text",
+      "id": "url",
+      "label": "Experience address",
+      "info": "Where the YU ONE experience is hosted.",
+      "default": "https://yuone-product-page.vercel.app/"
+    }
+  ],
+  "presets": [{ "name": "YU ONE experience" }]
+}
+{% endschema %}
